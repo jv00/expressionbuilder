@@ -1,8 +1,9 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
-import { Argument, BaseExpression, ConstantExpression } from '../../model';
+import React, { useEffect, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 import { Button, IconButton, MenuItem, Select, SelectChangeEvent, Typography } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+
+import { Argument, ExpressionNode } from '../../model';
 
 const ExpressionTypes: { [key: string]: string } = {
     select: "select",
@@ -44,6 +45,12 @@ export const ExpressionItem = (props: ExpressionItemProps) => {
         setNumberOfOperands(numberOfOperands + 1);
     }
 
+    const onDeleteClick = () => {
+        setSelectedType(ExpressionTypes.select);
+        setExpressionNodes([]);
+        setNumberOfOperands(0);
+    }
+
     useEffect(() => {
         if (selectedType === ExpressionTypes.and) {
             const result = expressionNodes.reduce((res, c) => res && c.Value, true);
@@ -70,14 +77,14 @@ export const ExpressionItem = (props: ExpressionItemProps) => {
     else if (selectedType === ExpressionTypes.constant)
         return <div>
             <ConstantExpressionItem onExpressionValueChanged={onNodeValueChange} />
-            <IconButton ><DeleteIcon /></IconButton>
+            <IconButton onClick={onDeleteClick}><DeleteIcon /></IconButton>
         </div>
     else if (selectedType === ExpressionTypes.argument)
         return <div>
             <ArgumentExpressionItem
                 argumentValues={argumentValues}
                 onExpressionValueChanged={onNodeValueChange} />
-            <IconButton ><DeleteIcon /></IconButton>
+            <IconButton onClick={onDeleteClick}><DeleteIcon /></IconButton>
         </div>
     else if (selectedType === ExpressionTypes.and)
         return <div style={{ paddingLeft: '0.5rem' }}>
@@ -164,8 +171,3 @@ const ArgumentExpressionItem = (props: ExpressionItemProps) => {
     </Select>
 }
 
-
-interface ExpressionNode {
-    Id: string,
-    Value: boolean
-} 

@@ -1,6 +1,6 @@
 import { Paper } from '@mui/material';
 import React, { useState } from 'react';
-import { Argument, BaseExpression } from '../../model';
+import { Argument } from '../../model';
 import { ArgumentsList } from '../argumentsList';
 import { ExpressionItem } from '../expressionItem';
 
