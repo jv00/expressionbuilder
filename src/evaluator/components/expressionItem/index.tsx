@@ -82,7 +82,7 @@ export const ExpressionItem = (props: ArgumentsExpressionItemProps) => {
             onExpressionValueChanged(result, expressionNode.Id);
         }
         else
-            onExpressionValueChanged(Object.values(expressionNodes)[0]?.Value, expressionNode.Id);
+            onExpressionValueChanged(Object.values(expressionNodes)[0]?.Value, expressionNode.Id);     
     }, [expressionNodes, selectedType]);
 
     return <>
@@ -192,9 +192,9 @@ const ArgumentExpressionItem = (props: ArgumentsExpressionItemProps) => {
         }
     }
 
-    useEffect(() => {
-        const newValue = argumentValues[argumentId];
-        onExpressionValueChanged(newValue?.Value || false, expressionNode.Id);
+    useEffect(() => {    
+    if(argumentValues[argumentId] && expressionNode.Value !==argumentValues[argumentId].Value)
+        onExpressionValueChanged(argumentValues[argumentId].Value || false, expressionNode.Id);
     }, [argumentValues]);
 
     return <div>
