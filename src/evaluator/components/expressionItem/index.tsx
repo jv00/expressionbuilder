@@ -30,50 +30,61 @@ export const ExpressionItem = (props: ArgumentsExpressionItemProps) => {
 
     const [selectedType, setSelectedType] = useState<string>(ExpressionTypes.select);
 
-    const [expressionNodes, setExpressionNodes] = useState<ExpressionNode[]>([]);
-
-    const [numberOfOperands, setNumberOfOperands] = useState<number>(0);
+    const [expressionNodes, setExpressionNodes] = useState<{ [key: string]: ExpressionNode }>({});
 
     const onChange = (event: SelectChangeEvent) => {
-        if ([ExpressionTypes.and, ExpressionTypes.or].includes(event.target.value))
-            initializeTwoOperands();
-        else
-            initializeOneOperand();
+        if ([ExpressionTypes.and, ExpressionTypes.or].includes(event.target.value)) {
+            const firstOperand = InitializeExpressionNode();
+            const secondOperand = InitializeExpressionNode();
+            const newNodes = Object.assign({}, expressionNodes, { [firstOperand.Id]: firstOperand }, { [secondOperand.Id]: secondOperand })
+            setExpressionNodes(newNodes);
+        }
+        else {
+            const firstOperand = InitializeExpressionNode();
+            const newNodes = Object.assign({}, expressionNodes, { [firstOperand.Id]: firstOperand })
+            setExpressionNodes(newNodes)
+        }
 
         setSelectedType(event.target.value);
     }
 
-    const initializeTwoOperands = () => setExpressionNodes([{ Id: uuid(), Value: true }, { Id: uuid(), Value: true }]);
-    const initializeOneOperand = () => setExpressionNodes([{ Id: uuid(), Value: true }]);
+    const onOperatorChange = (event: SelectChangeEvent) => {
+        setSelectedType(event.target.value)
+    }
+
+    const InitializeExpressionNode = (): ExpressionNode => {
+        return { Id: uuid(), Value: true };
+    }
 
     const onNodeValueChange = (value: boolean, childNodeId?: string) => {
         if (childNodeId) {
-            const filteredNodes = expressionNodes.filter(n => n.Id !== childNodeId);
-            setExpressionNodes([...filteredNodes, { Id: childNodeId, Value: value }]);
+            const newNodes = Object.assign({}, expressionNodes, { [childNodeId]: { Id: childNodeId, Value: value } })
+            setExpressionNodes(newNodes);
         }
     }
 
     const onAddMoreOperands = () => {
-        setNumberOfOperands(numberOfOperands + 1);
+        const newOperand = InitializeExpressionNode();
+        const newNodes = Object.assign({}, expressionNodes, { [newOperand.Id]: newOperand })
+        setExpressionNodes(newNodes)
     }
 
     const onDeleteClick = () => {
         setSelectedType(ExpressionTypes.select);
-        setExpressionNodes([]);
-        setNumberOfOperands(0);
+        setExpressionNodes({});
     }
 
     useEffect(() => {
         if (selectedType === ExpressionTypes.and) {
-            const result = expressionNodes.reduce((res, c) => res && c.Value, true);
+            const result = Object.values(expressionNodes).reduce((res, c) => res && c.Value, true);
             onExpressionValueChanged(result, expressionNode.Id);
         }
         else if (selectedType === ExpressionTypes.or) {
-            const result = expressionNodes.reduce((res, c) => res || c.Value, false);
+            const result = Object.values(expressionNodes).reduce((res, c) => res || c.Value, false);
             onExpressionValueChanged(result, expressionNode.Id);
         }
         else
-            onExpressionValueChanged(expressionNodes[0]?.Value, expressionNode.Id);
+            onExpressionValueChanged(Object.values(expressionNodes)[0]?.Value, expressionNode.Id);
     }, [expressionNodes, selectedType]);
 
 
@@ -85,7 +96,7 @@ export const ExpressionItem = (props: ArgumentsExpressionItemProps) => {
         return <div>
             <ConstantExpressionItem
                 onExpressionValueChanged={onNodeValueChange}
-                expressionNode={expressionNodes[0]} />
+                expressionNode={Object.values(expressionNodes)[0]} />
             <IconButton onClick={onDeleteClick}><DeleteIcon /></IconButton>
         </div>
     else if (selectedType === ExpressionTypes.argument)
@@ -93,21 +104,19 @@ export const ExpressionItem = (props: ArgumentsExpressionItemProps) => {
             <ArgumentExpressionItem
                 argumentValues={argumentValues}
                 onExpressionValueChanged={onNodeValueChange}
-                expressionNode={expressionNodes[0]} />
+                expressionNode={Object.values(expressionNodes)[0]} />
             <IconButton onClick={onDeleteClick}><DeleteIcon /></IconButton>
         </div>
-    else if (selectedType === ExpressionTypes.and)
+    else if ([ExpressionTypes.and, ExpressionTypes.or].includes(selectedType))
         return <div style={{ paddingLeft: '0.5rem' }}>
-            {expressionNodes.map(e =>  <ExpressionItem
-             key={e.Id}
-                onExpressionValueChanged={onNodeValueChange}
-                argumentValues={argumentValues}
-                expressionNode={e} />)}
-            <Button variant='outlined' onClick={onAddMoreOperands}>Add Operand</Button>
-        </div>
-    else if (selectedType === ExpressionTypes.or)
-        return <div style={{ paddingLeft: '0.5rem' }}>
-            {expressionNodes.map(e =>  <ExpressionItem
+            <div style={{ display: 'flex' }}>
+                <Select value={selectedType} onChange={onOperatorChange}>
+                    <MenuItem value={ExpressionTypes.or}>Or</MenuItem >
+                    <MenuItem value={ExpressionTypes.and}>And</MenuItem >
+                </Select>
+                <IconButton onClick={onDeleteClick}><DeleteIcon /></IconButton>
+            </div>
+            {Object.values(expressionNodes).map(e => <ExpressionItem
                 key={e.Id}
                 onExpressionValueChanged={onNodeValueChange}
                 argumentValues={argumentValues}
@@ -130,7 +139,7 @@ const ConstantExpressionItem = (props: ExpressionItemProps) => {
     }
 
     useEffect(() => {
-        if(value !== expressionNode.Value)
+        if (value !== expressionNode.Value)
             onExpressionValueChanged(value, expressionNode.Id);
     }, [value]);
 
