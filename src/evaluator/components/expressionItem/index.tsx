@@ -1,6 +1,8 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import { Argument, BaseExpression, ConstantExpression } from '../../model';
 import { v4 as uuid } from 'uuid';
+import { Button, IconButton, MenuItem, Select, SelectChangeEvent, Typography } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const ExpressionTypes: { [key: string]: string } = {
     select: "select",
@@ -27,8 +29,8 @@ export const ExpressionItem = (props: ExpressionItemProps) => {
 
     const [numberOfOperands, setNumberOfOperands] = useState<number>(0);
 
-    const onChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        setSelectedType(event.currentTarget.value);
+    const onChange = (event: SelectChangeEvent) => {
+        setSelectedType(event.target.value);
     }
 
     const onNodeValueChange = (value: boolean, childNodeId?: string) => {
@@ -43,14 +45,12 @@ export const ExpressionItem = (props: ExpressionItemProps) => {
     }
 
     useEffect(() => {
-        if(selectedType === ExpressionTypes.and)
-        {
+        if (selectedType === ExpressionTypes.and) {
             const result = expressionNodes.reduce((res, c) => res && c.Value, true);
             onExpressionValueChanged(result, nodeId);
         }
-        else if(selectedType === ExpressionTypes.or)
-        {
-            const result = expressionNodes.reduce((res, c) => res || c.Value, true);
+        else if (selectedType === ExpressionTypes.or) {
+            const result = expressionNodes.reduce((res, c) => res || c.Value, false);
             onExpressionValueChanged(result, nodeId);
         }
         else
@@ -64,41 +64,48 @@ export const ExpressionItem = (props: ExpressionItemProps) => {
 
 
     if (selectedType === ExpressionTypes.select)
-        return <div>
-            <select onChange={onChange}>
-                {Object.keys(ExpressionTypes).map((k: string) => <option key={k} value={ExpressionTypes[k]}>{ExpressionTypes[k]}</option>)}
-            </select>
-        </div>
+        return <Select onChange={onChange} value={selectedType} fullWidth>
+            {Object.keys(ExpressionTypes).map((k: string) => <MenuItem key={k} value={ExpressionTypes[k]}>{ExpressionTypes[k]}</MenuItem>)}
+        </Select>
     else if (selectedType === ExpressionTypes.constant)
-        return <>
+        return <div>
             <ConstantExpressionItem onExpressionValueChanged={onNodeValueChange} />
-            <button>x</button>
-        </>
+            <IconButton ><DeleteIcon /></IconButton>
+        </div>
     else if (selectedType === ExpressionTypes.argument)
-        return <>
+        return <div>
             <ArgumentExpressionItem
                 argumentValues={argumentValues}
                 onExpressionValueChanged={onNodeValueChange} />
-            <button>x</button>
-        </>
+            <IconButton ><DeleteIcon /></IconButton>
+        </div>
     else if (selectedType === ExpressionTypes.and)
-        return <div>
-            And
-            <ExpressionItem onExpressionValueChanged={onNodeValueChange} argumentValues={argumentValues}/>
-            <ExpressionItem onExpressionValueChanged={onNodeValueChange} argumentValues={argumentValues}/>
-            {[...Array(numberOfOperands)].map((e, i) => <ExpressionItem key={i} onExpressionValueChanged={onNodeValueChange} argumentValues={argumentValues}/>)}
-            <button onClick={onAddMoreOperands}>Add op</button>
+        return <div style={{ paddingLeft: '0.5rem' }}>
+            <ExpressionItem onExpressionValueChanged={onNodeValueChange} argumentValues={argumentValues} />
+            <Typography variant="h6" align='center'>
+                And
+            </Typography>
+
+            <ExpressionItem onExpressionValueChanged={onNodeValueChange} argumentValues={argumentValues} />
+            {[...Array(numberOfOperands)].map((e, i) => <>  <Typography variant="h6" align='center'>
+                And
+            </Typography><ExpressionItem key={i} onExpressionValueChanged={onNodeValueChange} argumentValues={argumentValues} />
+            </>)}
+            <Button variant='outlined' onClick={onAddMoreOperands}>Add Operand</Button>
         </div>
     else if (selectedType === ExpressionTypes.or)
-    return <div>
-        Or
-        <ExpressionItem onExpressionValueChanged={onNodeValueChange} argumentValues={argumentValues}/>
-        <ExpressionItem onExpressionValueChanged={onNodeValueChange} argumentValues={argumentValues}/>
-        {[...Array(numberOfOperands)].map((e, i) => <ExpressionItem key={i} onExpressionValueChanged={onNodeValueChange} argumentValues={argumentValues}/>)}
-        <button onClick={onAddMoreOperands}>Add op</button>
-    </div>
-
-
+        return <div style={{ paddingLeft: '0.5rem' }}>
+            <ExpressionItem onExpressionValueChanged={onNodeValueChange} argumentValues={argumentValues} />
+            <Typography variant="h6" align='center'>
+                Or
+            </Typography>
+            <ExpressionItem onExpressionValueChanged={onNodeValueChange} argumentValues={argumentValues} />
+            {[...Array(numberOfOperands)].map((e, i) => <>  <Typography variant="h6" align='center'>
+                Or
+            </Typography> <ExpressionItem key={i} onExpressionValueChanged={onNodeValueChange} argumentValues={argumentValues} />
+            </>)}
+            <Button variant='outlined' onClick={onAddMoreOperands}>Add Operand</Button>
+        </div>
     return <></>
 }
 
@@ -109,15 +116,10 @@ const ConstantExpressionItem = (props: ExpressionItemProps) => {
     const [value, setValue] = useState<boolean>(false)
     const [nodeId, setNodeId] = useState<string>()
 
-    const onValueChange = (event: ChangeEvent<HTMLSelectElement>) => {
-
-        const newValue = event.currentTarget.value === '0' ? false : true;
-
+    const onValueChange = (event: SelectChangeEvent) => {
+        const newValue = event.target.value === 'false' ? false : true;
         setValue(newValue);
-
-
         onExpressionValueChanged(newValue, nodeId);
-
     }
 
     useEffect(() => {
@@ -126,28 +128,25 @@ const ConstantExpressionItem = (props: ExpressionItemProps) => {
         onExpressionValueChanged(false, id);
     }, []);
 
-    return <select value={value ? 1 : 0} onChange={onValueChange}>
-        <option value={0}>False</option>
-        <option value={1}>True</option>
-    </select>
+    return <Select value={value ? 'true' : 'false'} onChange={onValueChange}>
+        <MenuItem value={'false'}>False</MenuItem >
+        <MenuItem value={'true'}>True</MenuItem >
+    </Select>
 }
 
 const ArgumentExpressionItem = (props: ExpressionItemProps) => {
 
     const { onExpressionValueChanged, argumentValues } = props;
 
-    const [argumentId, setArgumentId] = useState<string>()
+    const [argumentId, setArgumentId] = useState<string>('select')
     const [nodeId, setNodeId] = useState<string>()
 
-    const onValueChange = (event: ChangeEvent<HTMLSelectElement>) => {
-
-        
-
-        const newValue = argumentValues?.find(a => a.Id === event.currentTarget.value);
-
-
-        setArgumentId(newValue?.Id)
-        onExpressionValueChanged(newValue?.Value || false, nodeId);
+    const onValueChange = (event: SelectChangeEvent) => {
+        const newValue = argumentValues?.find(a => a.Id === event.target.value);
+        if (newValue) {
+            setArgumentId(newValue?.Id)
+            onExpressionValueChanged(newValue?.Value || false, nodeId);
+        }
     }
 
     useEffect(() => {
@@ -159,10 +158,10 @@ const ArgumentExpressionItem = (props: ExpressionItemProps) => {
         setNodeId(uuid());
     }, []);
 
-    return <select value={argumentId} onChange={onValueChange}>
-        <option >select</option>
-        {argumentValues?.map(a => <option key={a.Id} value={a.Id}>{a.Name}</option>)}
-    </select>
+    return <Select value={argumentId} onChange={onValueChange}>
+        <MenuItem value={'select'}>select</MenuItem>
+        {argumentValues?.map(a => <MenuItem key={a.Id} value={a.Id}>{a.Name}</MenuItem>)}
+    </Select>
 }
 
 

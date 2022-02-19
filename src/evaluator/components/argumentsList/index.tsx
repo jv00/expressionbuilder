@@ -1,6 +1,7 @@
 import { ChangeEvent } from "react";
 import { Argument } from "../../model";
 import { v4 as uuid } from 'uuid';
+import { Paper, TextField, Select, MenuItem, SelectChangeEvent, Button } from "@mui/material";
 
 interface ArgumentsListProps {
     argumentValues: Argument[],
@@ -13,12 +14,12 @@ export const ArgumentsList = (props: ArgumentsListProps) => {
 
     const onAddArgumentClick = () => updateArgument({ Id: uuid(), Name: 'newarg', Value: false });
 
-    return <div>
+    return <Paper style={{ 'padding': '1rem' }}>
         {argumentValues.map((val: Argument) => <ArgumentItem key={val.Id}
             argument={val}
             onChange={updateArgument} />)}
-        <button onClick={onAddArgumentClick}>Add Argument</button>
-    </div>
+        <Button variant='outlined' onClick={onAddArgumentClick}>Add Argument</Button>
+    </Paper>
 }
 
 interface ArgumentItemProps {
@@ -34,15 +35,15 @@ const ArgumentItem = (props: ArgumentItemProps) => {
         onChange({ ...argument, Name: event.currentTarget.value });
     }
 
-    const onValueChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        onChange({ ...argument, Value: event.currentTarget.value === '0' ? false : true });
+    const onValueChange = (event: SelectChangeEvent) => {
+        onChange({ ...argument, Value: event.target.value === 'false' ? false : true });
     }
 
-    return <div>
-        <input value={argument.Name} onChange={onNameChange} />
-        <select value={argument.Value ? 1 : 0} onChange={onValueChange}>
-            <option value={0}>False</option>
-            <option value={1}>True</option>
-        </select>
+    return <div style={{paddingBlock: '0.5rem'}}>
+        <TextField label='Argument Name' value={argument.Name} onChange={onNameChange} />
+        <Select value={argument.Value ? 'true' : 'false'} onChange={onValueChange}>
+            <MenuItem value={'false'}>False</MenuItem >
+            <MenuItem value={'true'}>True</MenuItem >
+        </Select>
     </div>
 }

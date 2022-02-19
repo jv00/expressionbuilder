@@ -1,3 +1,4 @@
+import { Paper } from '@mui/material';
 import React, { useState } from 'react';
 import { Argument, BaseExpression } from '../../model';
 import { ArgumentsList } from '../argumentsList';
@@ -15,13 +16,14 @@ export const OperationBuilder = () => {
 
     const onExpressionValueChanged = (value: boolean) =>  setResult(value);
 
-    console.log(result)
-
     return <>
         <ArgumentsList argumentValues={argumentValues} updateArgument={addNewArgument} />
 
+        <Paper style={{ marginBlock: '1rem', padding: '1rem'}}>
         <ExpressionItem argumentValues={argumentValues}  onExpressionValueChanged={onExpressionValueChanged}/>
 
+        </Paper>
+     
 
         <div>
             result: {result ? "true" : "false"}
