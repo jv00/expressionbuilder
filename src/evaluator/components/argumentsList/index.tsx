@@ -4,7 +4,7 @@ import { v4 as uuid } from 'uuid';
 import { Paper, TextField, Select, MenuItem, SelectChangeEvent, Button } from "@mui/material";
 
 interface ArgumentsListProps {
-    argumentValues: Argument[],
+    argumentValues: { [key: string]: Argument },
     updateArgument(newArgument: Argument): void
 }
 
@@ -14,9 +14,9 @@ export const ArgumentsList = (props: ArgumentsListProps) => {
 
     const onAddArgumentClick = () => updateArgument({ Id: uuid(), Name: 'newarg', Value: false });
 
-    return <Paper style={{ 'padding': '1rem' }}>
-        {argumentValues.map((val: Argument) => <ArgumentItem key={val.Id}
-            argument={val}
+    return <Paper style={{ padding: '1rem' }}>
+        {Object.keys(argumentValues).map((key: string) => <ArgumentItem key={key}
+            argument={argumentValues[key]}
             onChange={updateArgument} />)}
         <Button variant='outlined' onClick={onAddArgumentClick}>Add Argument</Button>
     </Paper>
@@ -39,7 +39,7 @@ const ArgumentItem = (props: ArgumentItemProps) => {
         onChange({ ...argument, Value: event.target.value === 'false' ? false : true });
     }
 
-    return <div style={{paddingBlock: '0.5rem'}}>
+    return <div style={{ paddingBlock: '0.5rem' }}>
         <TextField label='Argument Name' value={argument.Name} onChange={onNameChange} />
         <Select value={argument.Value ? 'true' : 'false'} onChange={onValueChange}>
             <MenuItem value={'false'}>False</MenuItem >

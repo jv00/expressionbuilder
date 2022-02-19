@@ -16,10 +16,14 @@ const ExpressionTypes: { [key: string]: string } = {
 
 interface ExpressionItemProps {
     onExpressionValueChanged(value: boolean, nodeId?: string): void;
-    argumentValues?: Argument[]
 }
 
-export const ExpressionItem = (props: ExpressionItemProps) => {
+interface ArgumentsExpressionItemProps extends ExpressionItemProps{
+    onExpressionValueChanged(value: boolean, nodeId?: string): void;
+    argumentValues: { [key: string]: Argument }
+}
+
+export const ExpressionItem = (props: ArgumentsExpressionItemProps) => {
 
     const { onExpressionValueChanged, argumentValues } = props;
 
@@ -141,7 +145,7 @@ const ConstantExpressionItem = (props: ExpressionItemProps) => {
     </Select>
 }
 
-const ArgumentExpressionItem = (props: ExpressionItemProps) => {
+const ArgumentExpressionItem = (props: ArgumentsExpressionItemProps) => {
 
     const { onExpressionValueChanged, argumentValues } = props;
 
@@ -149,7 +153,7 @@ const ArgumentExpressionItem = (props: ExpressionItemProps) => {
     const [nodeId, setNodeId] = useState<string>()
 
     const onValueChange = (event: SelectChangeEvent) => {
-        const newValue = argumentValues?.find(a => a.Id === event.target.value);
+        const newValue = argumentValues[event.target.value];
         if (newValue) {
             setArgumentId(newValue?.Id)
             onExpressionValueChanged(newValue?.Value || false, nodeId);
@@ -157,7 +161,7 @@ const ArgumentExpressionItem = (props: ExpressionItemProps) => {
     }
 
     useEffect(() => {
-        const newValue = argumentValues?.find(a => a.Id === argumentId);
+        const newValue = argumentValues[argumentId];
         onExpressionValueChanged(newValue?.Value || false, nodeId);
     }, [argumentValues]);
 
@@ -167,7 +171,7 @@ const ArgumentExpressionItem = (props: ExpressionItemProps) => {
 
     return <Select value={argumentId} onChange={onValueChange}>
         <MenuItem value={'select'}>select</MenuItem>
-        {argumentValues?.map(a => <MenuItem key={a.Id} value={a.Id}>{a.Name}</MenuItem>)}
+        {Object.keys(argumentValues).map((k: string) => <MenuItem key={k} value={k}>{argumentValues[k].Name}</MenuItem>)}
     </Select>
 }
 
