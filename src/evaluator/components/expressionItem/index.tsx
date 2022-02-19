@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { v4 as uuid } from 'uuid';
-import { Button, IconButton, MenuItem, Select, SelectChangeEvent, Typography } from '@mui/material';
+import { Button, IconButton, MenuItem, Select, SelectChangeEvent } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { Argument, ExpressionNode } from '../../model';
@@ -12,7 +12,6 @@ const ExpressionTypes: { [key: string]: string } = {
     and: "and",
     or: "or"
 }
-
 
 interface ExpressionItemProps {
     onExpressionValueChanged(value: boolean, nodeId?: string): void;
@@ -30,7 +29,6 @@ export const ExpressionItem = (props: ArgumentsExpressionItemProps) => {
     const { onExpressionValueChanged, argumentValues, expressionNode } = props;
 
     const [selectedType, setSelectedType] = useState<string>(ExpressionTypes.select);
-
     const [expressionNodes, setExpressionNodes] = useState<{ [key: string]: ExpressionNode }>({});
 
     const onExpressionTypeChange = (event: SelectChangeEvent) => {
@@ -45,7 +43,6 @@ export const ExpressionItem = (props: ArgumentsExpressionItemProps) => {
             const newNodes = Object.assign({}, expressionNodes, { [firstOperand.Id]: firstOperand })
             setExpressionNodes(newNodes)
         }
-
         setSelectedType(event.target.value);
     }
 
@@ -87,7 +84,6 @@ export const ExpressionItem = (props: ArgumentsExpressionItemProps) => {
         else
             onExpressionValueChanged(Object.values(expressionNodes)[0]?.Value, expressionNode.Id);
     }, [expressionNodes, selectedType]);
-
 
     return <>
         {GetView(
@@ -136,7 +132,7 @@ const GetView = (props: NodeViewProps) => ({
 
 const OperatorExpressionItemView = (props: NodeViewProps) => {
 
-    const { selectedType, onDeleteClick, onOperatorChange, expressionNodes, onNodeValueChange, onAddMoreOperands, argumentValues } = props;
+    const { selectedType, expressionNodes, argumentValues, onDeleteClick, onOperatorChange, onNodeValueChange, onAddMoreOperands } = props;
 
     return <>
         <div style={{ paddingLeft: '0.5rem' }}>
@@ -209,4 +205,3 @@ const ArgumentExpressionItem = (props: ArgumentsExpressionItemProps) => {
         <IconButton onClick={onDeleteClick}><DeleteIcon /></IconButton>
     </div>
 }
-
