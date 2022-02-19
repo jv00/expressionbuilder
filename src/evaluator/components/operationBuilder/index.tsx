@@ -1,6 +1,7 @@
-import { Paper } from '@mui/material';
+import { Paper, Typography } from '@mui/material';
 import { v4 as uuid } from 'uuid';
-import React, { useState } from 'react';
+import { useState } from 'react';
+
 import { Argument, ExpressionNode } from '../../model';
 import { ArgumentsList } from '../argumentsList';
 import { ExpressionItem } from '../expressionItem';
@@ -25,8 +26,8 @@ export const OperationBuilder = () => {
         <ExpressionItem expressionNode={rootNode} argumentValues={argumentValues}  onExpressionValueChanged={onExpressionValueChanged}/>
         </Paper>
     
-        <div>
+        <Typography variant='subtitle1'>
             result: {result ? "true" : "false"}
-        </div>
+        </Typography>
     </>
 }

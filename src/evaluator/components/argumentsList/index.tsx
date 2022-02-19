@@ -1,7 +1,8 @@
 import { ChangeEvent } from "react";
-import { Argument } from "../../model";
 import { v4 as uuid } from 'uuid';
 import { Paper, TextField, Select, MenuItem, SelectChangeEvent, Button } from "@mui/material";
+
+import { Argument } from "../../model";
 
 interface ArgumentsListProps {
     argumentValues: { [key: string]: Argument },
