@@ -16,27 +16,35 @@ const ExpressionTypes: { [key: string]: string } = {
 
 interface ExpressionItemProps {
     onExpressionValueChanged(value: boolean, nodeId?: string): void;
+    expressionNode: ExpressionNode
 }
 
-interface ArgumentsExpressionItemProps extends ExpressionItemProps{
+interface ArgumentsExpressionItemProps extends ExpressionItemProps {
     onExpressionValueChanged(value: boolean, nodeId?: string): void;
     argumentValues: { [key: string]: Argument }
 }
 
 export const ExpressionItem = (props: ArgumentsExpressionItemProps) => {
 
-    const { onExpressionValueChanged, argumentValues } = props;
+    const { onExpressionValueChanged, argumentValues, expressionNode } = props;
 
     const [selectedType, setSelectedType] = useState<string>(ExpressionTypes.select);
-    const [nodeId, setNodeId] = useState<string>()
 
     const [expressionNodes, setExpressionNodes] = useState<ExpressionNode[]>([]);
 
     const [numberOfOperands, setNumberOfOperands] = useState<number>(0);
 
     const onChange = (event: SelectChangeEvent) => {
+        if ([ExpressionTypes.and, ExpressionTypes.or].includes(event.target.value))
+            initializeTwoOperands();
+        else
+            initializeOneOperand();
+
         setSelectedType(event.target.value);
     }
+
+    const initializeTwoOperands = () => setExpressionNodes([{ Id: uuid(), Value: true }, { Id: uuid(), Value: true }]);
+    const initializeOneOperand = () => setExpressionNodes([{ Id: uuid(), Value: true }]);
 
     const onNodeValueChange = (value: boolean, childNodeId?: string) => {
         if (childNodeId) {
@@ -58,20 +66,15 @@ export const ExpressionItem = (props: ArgumentsExpressionItemProps) => {
     useEffect(() => {
         if (selectedType === ExpressionTypes.and) {
             const result = expressionNodes.reduce((res, c) => res && c.Value, true);
-            onExpressionValueChanged(result, nodeId);
+            onExpressionValueChanged(result, expressionNode.Id);
         }
         else if (selectedType === ExpressionTypes.or) {
             const result = expressionNodes.reduce((res, c) => res || c.Value, false);
-            onExpressionValueChanged(result, nodeId);
+            onExpressionValueChanged(result, expressionNode.Id);
         }
         else
-            onExpressionValueChanged(expressionNodes[0]?.Value, nodeId);
+            onExpressionValueChanged(expressionNodes[0]?.Value, expressionNode.Id);
     }, [expressionNodes, selectedType]);
-
-
-    useEffect(() => {
-        setNodeId(uuid());
-    }, []);
 
 
     if (selectedType === ExpressionTypes.select)
@@ -80,41 +83,35 @@ export const ExpressionItem = (props: ArgumentsExpressionItemProps) => {
         </Select>
     else if (selectedType === ExpressionTypes.constant)
         return <div>
-            <ConstantExpressionItem onExpressionValueChanged={onNodeValueChange} />
+            <ConstantExpressionItem
+                onExpressionValueChanged={onNodeValueChange}
+                expressionNode={expressionNodes[0]} />
             <IconButton onClick={onDeleteClick}><DeleteIcon /></IconButton>
         </div>
     else if (selectedType === ExpressionTypes.argument)
         return <div>
             <ArgumentExpressionItem
                 argumentValues={argumentValues}
-                onExpressionValueChanged={onNodeValueChange} />
+                onExpressionValueChanged={onNodeValueChange}
+                expressionNode={expressionNodes[0]} />
             <IconButton onClick={onDeleteClick}><DeleteIcon /></IconButton>
         </div>
     else if (selectedType === ExpressionTypes.and)
         return <div style={{ paddingLeft: '0.5rem' }}>
-            <ExpressionItem onExpressionValueChanged={onNodeValueChange} argumentValues={argumentValues} />
-            <Typography variant="h6" align='center'>
-                And
-            </Typography>
-
-            <ExpressionItem onExpressionValueChanged={onNodeValueChange} argumentValues={argumentValues} />
-            {[...Array(numberOfOperands)].map((e, i) => <>  <Typography variant="h6" align='center'>
-                And
-            </Typography><ExpressionItem key={i} onExpressionValueChanged={onNodeValueChange} argumentValues={argumentValues} />
-            </>)}
+            {expressionNodes.map(e =>  <ExpressionItem
+             key={e.Id}
+                onExpressionValueChanged={onNodeValueChange}
+                argumentValues={argumentValues}
+                expressionNode={e} />)}
             <Button variant='outlined' onClick={onAddMoreOperands}>Add Operand</Button>
         </div>
     else if (selectedType === ExpressionTypes.or)
         return <div style={{ paddingLeft: '0.5rem' }}>
-            <ExpressionItem onExpressionValueChanged={onNodeValueChange} argumentValues={argumentValues} />
-            <Typography variant="h6" align='center'>
-                Or
-            </Typography>
-            <ExpressionItem onExpressionValueChanged={onNodeValueChange} argumentValues={argumentValues} />
-            {[...Array(numberOfOperands)].map((e, i) => <>  <Typography variant="h6" align='center'>
-                Or
-            </Typography> <ExpressionItem key={i} onExpressionValueChanged={onNodeValueChange} argumentValues={argumentValues} />
-            </>)}
+            {expressionNodes.map(e =>  <ExpressionItem
+                key={e.Id}
+                onExpressionValueChanged={onNodeValueChange}
+                argumentValues={argumentValues}
+                expressionNode={e} />)}
             <Button variant='outlined' onClick={onAddMoreOperands}>Add Operand</Button>
         </div>
     return <></>
@@ -122,22 +119,20 @@ export const ExpressionItem = (props: ArgumentsExpressionItemProps) => {
 
 const ConstantExpressionItem = (props: ExpressionItemProps) => {
 
-    const { onExpressionValueChanged } = props;
+    const { onExpressionValueChanged, expressionNode } = props;
 
     const [value, setValue] = useState<boolean>(false)
-    const [nodeId, setNodeId] = useState<string>()
 
     const onValueChange = (event: SelectChangeEvent) => {
         const newValue = event.target.value === 'false' ? false : true;
         setValue(newValue);
-        onExpressionValueChanged(newValue, nodeId);
+        onExpressionValueChanged(newValue, expressionNode.Id);
     }
 
     useEffect(() => {
-        const id = uuid();
-        setNodeId(id);
-        onExpressionValueChanged(false, id);
-    }, []);
+        if(value !== expressionNode.Value)
+            onExpressionValueChanged(value, expressionNode.Id);
+    }, [value]);
 
     return <Select value={value ? 'true' : 'false'} onChange={onValueChange}>
         <MenuItem value={'false'}>False</MenuItem >
@@ -147,27 +142,21 @@ const ConstantExpressionItem = (props: ExpressionItemProps) => {
 
 const ArgumentExpressionItem = (props: ArgumentsExpressionItemProps) => {
 
-    const { onExpressionValueChanged, argumentValues } = props;
+    const { onExpressionValueChanged, argumentValues, expressionNode } = props;
 
-    const [argumentId, setArgumentId] = useState<string>('select')
-    const [nodeId, setNodeId] = useState<string>()
-
+    const [argumentId, setArgumentId] = useState<string>('select');
     const onValueChange = (event: SelectChangeEvent) => {
         const newValue = argumentValues[event.target.value];
         if (newValue) {
             setArgumentId(newValue?.Id)
-            onExpressionValueChanged(newValue?.Value || false, nodeId);
+            onExpressionValueChanged(newValue?.Value || false, expressionNode.Id);
         }
     }
 
     useEffect(() => {
         const newValue = argumentValues[argumentId];
-        onExpressionValueChanged(newValue?.Value || false, nodeId);
+        onExpressionValueChanged(newValue?.Value || false, expressionNode.Id);
     }, [argumentValues]);
-
-    useEffect(() => {
-        setNodeId(uuid());
-    }, []);
 
     return <Select value={argumentId} onChange={onValueChange}>
         <MenuItem value={'select'}>select</MenuItem>
